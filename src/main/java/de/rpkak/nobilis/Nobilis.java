@@ -97,6 +97,12 @@ public class Nobilis {
 		} else {
 			Main.sqlite.executeWithoutResult(
 					"DELETE FROM roles_of_server_" + role.getGuild().getId() + " WHERE roleid = " + role.getId());
+			for (RoleMarker roleMarker : getRoleMarkers(role.getGuild())) {
+				if (roleMarker.getLess().contains(role.getIdLong())) {
+					roleMarker.getLess().remove(role.getIdLong());
+					roleMarker.store(role.getGuild());
+				}
+			}
 			EmbedBuilder builder = new EmbedBuilder();
 			builder.setAuthor("Removed");
 			builder.setColor(Color.GREEN);
