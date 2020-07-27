@@ -9,6 +9,6 @@ public class RoleRemoveListener extends ListenerAdapter {
 	@Override
 	public void onRoleDelete(RoleDeleteEvent event) {
 		Utils.tryCatch(() -> Nobilis.onRoleDelete(event.getRole()), event.getRole().getGuild().getSystemChannel(),
-				event.getRole().getGuild().getOwner().getUser(), "in onRoleDelete", event.getRole().getGuild());
+				"in onRoleDelete", event.getRole().getGuild());
 	}
 }
