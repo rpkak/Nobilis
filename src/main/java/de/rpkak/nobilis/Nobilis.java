@@ -22,6 +22,7 @@ import guru.nidi.graphviz.engine.Graphviz;
 import guru.nidi.graphviz.model.MutableGraph;
 import guru.nidi.graphviz.model.MutableNode;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.MessageChannel;
@@ -129,24 +130,59 @@ public class Nobilis {
 	public static void give(Role role, Member member, MessageChannel channel) throws SQLException {
 		RoleMarker roleMarker = checkRole(role, channel);
 		if (roleMarker != null) {
-			Guild guild = role.getGuild();
+			boolean changeNickname = !roleMarker.getNickname().equals("%");
+			// Perms: canInteract all roles, Permission.MANAGE_ROLES
+			// Perms nickname: Permission.NICKNAME_MANAGE canInteract member
+			if (!role.getGuild().getSelfMember().hasPermission(Permission.MANAGE_ROLES)) {
+				EmbedBuilder builder = new EmbedBuilder();
+				builder.setAuthor("Missing Permission");
+				builder.setColor(Color.RED);
+				builder.setDescription("I need to have the permission \"" + Permission.MANAGE_ROLES.getName()
+						+ "\".\nFor more information execute the **permissions** command.");
+				channel.sendMessage(builder.build()).queue();
+			} else if (!role.getGuild().getSelfMember().canInteract(role)) {
+				EmbedBuilder builder = new EmbedBuilder();
+				builder.setAuthor("Can't interact");
+				builder.setColor(Color.RED);
+				builder.setDescription("I'm not able to give the role \"" + role.getAsMention()
+						+ "\".\nFor more information execute the **permissions** command.");
+				channel.sendMessage(builder.build()).queue();
+			} else if (changeNickname && !role.getGuild().getSelfMember().hasPermission(Permission.NICKNAME_MANAGE)) {
+				EmbedBuilder builder = new EmbedBuilder();
+				builder.setAuthor("Missing Permission");
+				builder.setColor(Color.RED);
+				builder.setDescription("I need to have the permission \"" + Permission.NICKNAME_MANAGE.getName()
+						+ "\" to change a nickname.\nFor more information execute the **permissions** command.");
+				channel.sendMessage(builder.build()).queue();
+			} else if (changeNickname && !role.getGuild().getSelfMember().canInteract(member)) {
+				EmbedBuilder builder = new EmbedBuilder();
+				builder.setAuthor("Can't interact");
+				builder.setColor(Color.RED);
+				builder.setDescription("I'm not able to change to nickname of \"" + member.getAsMention()
+						+ "\".\nFor more information execute the **permissions** command.");
+				channel.sendMessage(builder.build()).queue();
+			} else {
+				Guild guild = role.getGuild();
 
-			List<RoleMarker> allRoles = new ArrayList<RoleMarker>();
-			allRoles.add(roleMarker);
-			while (!allRoles.isEmpty()) {
-				RoleMarker thisRoleMarker = allRoles.remove(0);
-				for (long lessId : thisRoleMarker.getLess()) {
-					allRoles.add(checkRole(guild.getRoleById(lessId), channel));
+				List<RoleMarker> allRoles = new ArrayList<RoleMarker>();
+				allRoles.add(roleMarker);
+				while (!allRoles.isEmpty()) {
+					RoleMarker thisRoleMarker = allRoles.remove(0);
+					for (long lessId : thisRoleMarker.getLess()) {
+						allRoles.add(checkRole(guild.getRoleById(lessId), channel));
+					}
+					guild.addRoleToMember(member, guild.getRoleById(thisRoleMarker.getRoleId())).queue();
 				}
-				guild.addRoleToMember(member, guild.getRoleById(thisRoleMarker.getRoleId())).queue();
-			}
-			member.modifyNickname(roleMarker.getNickname().replaceAll("%", member.getUser().getName())).queue();
+				if (changeNickname) {
+					member.modifyNickname(roleMarker.getNickname().replaceAll("%", member.getUser().getName())).queue();
+				}
 
-			EmbedBuilder builder = new EmbedBuilder();
-			builder.setAuthor("Gave role");
-			builder.setColor(Color.GREEN);
-			builder.setDescription("Gave \"" + role.getAsMention() + "\" to \"" + member.getAsMention() + "\".");
-			channel.sendMessage(builder.build()).queue();
+				EmbedBuilder builder = new EmbedBuilder();
+				builder.setAuthor("Gave role");
+				builder.setColor(Color.GREEN);
+				builder.setDescription("Gave \"" + role.getAsMention() + "\" to \"" + member.getAsMention() + "\".");
+				channel.sendMessage(builder.build()).queue();
+			}
 		}
 	}
 
@@ -292,7 +328,7 @@ public class Nobilis {
 			List<Long> subRoleMarkerIds = new ArrayList<Long>();
 			List<Long> tempRoleMarkerIds = new ArrayList<Long>();
 
-			subRoleMarkerIds.add(roleMarker.getRoleId());
+//			subRoleMarkerIds.add(roleMarker.getRoleId());
 			tempRoleMarkerIds.add(roleMarker.getRoleId());
 
 			while (!tempRoleMarkerIds.isEmpty()) {
