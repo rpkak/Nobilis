@@ -374,4 +374,7 @@ public class Nobilis {
 			}
 		}
 	}
+	public static void takeAway(Role role, Member member, Role resetRole, MessageChannel channel) {
+		
+	}
 }
