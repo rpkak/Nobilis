@@ -46,11 +46,15 @@ public class Main {
 			perms.setAuthor("Permissions");
 			perms.setColor(Color.YELLOW);
 			perms.setDescription("If I have all following permissions I can manage your roles perfectly for you.");
-			perms.addField("Hierarchy",
+			perms.addField(Permission.MANAGE_ROLES.getName(), "for giving the roles to members", false);
+			perms.addField("Highter Role",
 					"The bot needs to have a role that is higher (equals is not enough) than all roles he should manage.\nTo make a role higher you can go to the server settings / roles and make the bot higher using drag'n'drop.",
 					false);
-			perms.addField(Permission.NICKNAME_MANAGE.getName(), "for giving members the nickname of the role", false);
-			perms.addField(Permission.MANAGE_ROLES.getName(), "for giving the roles to members", false);
+			perms.addField(Permission.NICKNAME_MANAGE.getName() + " (Only for my nickname feature)",
+					"for giving members the nickname of the role", false);
+			perms.addField("Highter Role than member (Only for my nickname feature)",
+					"The bot needs to have a role that is higher (equals is not enough) than all roles a member has where he should change the nickname.\nTo make a role higher you can go to the server settings / roles and make the bot higher using drag'n'drop.",
+					false);
 
 			commandListener.addCommand(new PermissionCommand(perms));
 			commandListener.addCommand(new HierarchyCommand());
